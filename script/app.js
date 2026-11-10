@@ -1,16 +1,7 @@
 "use strict";
 
-const API_BASES = [
-    "https://data-api.binance.vision/api/v3",
-    "https://api-gcp.binance.com/api/v3",
-    "https://api.binance.com/api/v3"
-];
-const FX_API_URL = "https://open.er-api.com/v6/latest/USD";
-const RATE_CACHE_KEY = "bluechip.currency-rates.v1";
-const RATE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-const REQUEST_TIMEOUT_MS = 7000;
-const REFRESH_COOLDOWN_MS = 1500;
-const CURRENCIES = ["USD", "EUR", "GBP", "KZT"];
+const API_BASE = "https://data-api.binance.vision/api/v3";
+const REFRESH_COOLDOWN_MS = 5000;
 const COINS = [
     { id: "bitcoin", name: "Bitcoin", symbol: "BTC", pair: "BTCUSDT", mark: "₿", colors: ["#f7931a", "#402a15", "#ffbf67"] },
     { id: "ethereum", name: "Ethereum", symbol: "ETH", pair: "ETHUSDT", mark: "◆", colors: ["#9aa9ff", "#202845", "#bec8ff"] },
@@ -23,17 +14,13 @@ const PERIODS = {
     "24h": { interval: "15m", limit: 96, label: "24H" },
     "7d": { interval: "4h", limit: 42, label: "7D" }
 };
-const savedCurrency = readSavedCurrency();
-const state = { selected: COINS[0], period: "1h", currency: "USD", currencyRates: { USD: 1 }, marketData: [], chartPoints: [], chartCandles: [], isRefreshing: false, lastRefreshAt: 0, chartRequestId: 0, toastTimer: null };
+const state = { selected: COINS[0], period: "1h", marketData: [], isRefreshing: false, lastRefreshAt: 0, chartRequestId: 0, toastTimer: null };
 const elements = {
     coinList: document.getElementById("coin-list"),
     updatedLabel: document.getElementById("updated-label"),
     refreshButton: document.getElementById("refresh-button"),
-    refreshLabel: document.getElementById("refresh-label"),
     coinPicker: document.getElementById("coin-picker"),
     coinSelect: document.getElementById("coin-select"),
-    currencySelect: document.getElementById("currency-select"),
-    chartFooterLabel: document.getElementById("chart-footer-label"),
     chartTitle: document.getElementById("chart-title"),
     chartPrice: document.getElementById("chart-price"),
     chartChange: document.getElementById("chart-change"),
@@ -48,28 +35,8 @@ const elements = {
 
 function formatPrice(value) {
     if (!Number.isFinite(value)) return "—";
-    const converted = value * (state.currencyRates[state.currency] ?? 1);
-    const digits = converted >= 1 ? 2 : converted >= 0.01 ? 4 : 6;
-    return new Intl.NumberFormat("en-US", { style: "currency", currency: state.currency, minimumFractionDigits: 2, maximumFractionDigits: digits }).format(converted);
-}
-
-function readSavedCurrency() {
-    try {
-        const currency = localStorage.getItem("bluechip.display-currency");
-        return CURRENCIES.includes(currency) ? currency : "USD";
-    } catch {
-        return "USD";
-    }
-}
-
-function readRateCache() {
-    try {
-        const cached = JSON.parse(localStorage.getItem(RATE_CACHE_KEY) ?? "null");
-        if (cached?.rates && Number.isFinite(cached.savedAt)) return cached;
-    } catch {
-        // Storage may be disabled; rates can still be fetched for this session.
-    }
-    return null;
+    const digits = value >= 1 ? 2 : value >= 0.01 ? 4 : 6;
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: digits }).format(value);
 }
 
 function setChangeStyle(element, change) {
@@ -85,91 +52,22 @@ function showToast(message) {
 }
 
 async function fetchJson(url, signal) {
-    let response;
-    try {
-        response = await fetch(url, { signal: signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS), headers: { Accept: "application/json" } });
-    } catch (error) {
-        if (error.name === "TimeoutError" || error.name === "AbortError") throw new Error("The request timed out. Please try again.");
-        throw new Error("Could not connect to the data service. Check your connection and try again.");
-    }
+    const response = await fetch(url, { signal, headers: { Accept: "application/json" } });
     if (!response.ok) {
-        const detail = response.status === 429 ? "The data service is rate-limiting requests. Wait a moment and try again." : `Data request failed (${response.status}).`;
-        const error = new Error(detail);
-        error.status = response.status;
-        throw error;
+        const detail = response.status === 429 ? "The market data service is busy. Please wait a moment and try again." : `Market data request failed (${response.status}).`;
+        throw new Error(detail);
     }
     return response.json();
 }
 
-async function fetchBinanceJson(path) {
-    let lastError;
-    for (const base of API_BASES) {
-        try {
-            return await fetchJson(`${base}${path}`);
-        } catch (error) {
-            if (error.status === 429) throw error;
-            lastError = error;
-        }
-    }
-    throw new Error(`${lastError?.message ?? "Could not reach Binance."} Tried the available public Binance endpoints.`);
-}
-
-async function loadCurrencyRates() {
-    const cached = readRateCache();
-    if (cached?.rates?.USD === 1 && Date.now() - cached.savedAt < RATE_CACHE_TTL_MS) {
-        state.currencyRates = cached.rates;
-        applySavedCurrency();
-        return true;
-    }
-
-    try {
-        const data = await fetchJson(FX_API_URL);
-        if (data.result !== "success" || !data.rates || !CURRENCIES.every((currency) => Number.isFinite(data.rates[currency]))) {
-            throw new Error("Currency conversion rates are incomplete.");
-        }
-        state.currencyRates = { ...data.rates, USD: 1 };
-        try {
-            localStorage.setItem(RATE_CACHE_KEY, JSON.stringify({ rates: state.currencyRates, savedAt: Date.now() }));
-        } catch {
-            // Continue without a persistent cache when browser storage is unavailable.
-        }
-        applySavedCurrency();
-        return true;
-    } catch (error) {
-        if (cached?.rates?.USD === 1) {
-            state.currencyRates = cached.rates;
-            applySavedCurrency();
-            return true;
-        }
-        elements.currencySelect.disabled = true;
-        elements.currencySelect.value = "USD";
-        showToast(`${error.message} Prices will remain in USD until rates are available.`);
-        return false;
-    }
-}
-
-function applySavedCurrency() {
-    state.currency = Number.isFinite(state.currencyRates[savedCurrency]) ? savedCurrency : "USD";
-    elements.currencySelect.value = state.currency;
-    elements.currencySelect.disabled = false;
-    updateCurrencyDisplay();
-}
-
-function updateCurrencyDisplay() {
-    elements.chartFooterLabel.textContent = `PRICE (${state.currency})`;
-    if (state.marketData.length > 0) renderCoinList();
-    updateSelectedCoinSummary();
-    if (state.chartPoints.length > 1) renderChart(state.chartPoints, state.chartCandles);
-}
-
-function buildMarketPath() {
+function buildMarketUrl() {
     const pairs = COINS.map((coin) => coin.pair);
     const symbols = encodeURIComponent(JSON.stringify(pairs));
-    return `/ticker/24hr?symbols=${symbols}`;
+    return `${API_BASE}/ticker/24hr?symbols=${symbols}`;
 }
 
 async function loadMarketData({ quiet = false } = {}) {
-    if (state.isRefreshing) return false;
+    if (state.isRefreshing) return;
     const waitMs = REFRESH_COOLDOWN_MS - (Date.now() - state.lastRefreshAt);
     if (waitMs > 0) {
         if (!quiet) showToast(`Please wait ${Math.ceil(waitMs / 1000)}s before refreshing again.`);
@@ -180,11 +78,10 @@ async function loadMarketData({ quiet = false } = {}) {
     state.lastRefreshAt = Date.now();
     elements.refreshButton.disabled = true;
     elements.refreshButton.classList.add("is-loading");
-    elements.refreshLabel.textContent = "Updating…";
     elements.refreshButton.setAttribute("aria-busy", "true");
 
     try {
-        const rows = await fetchBinanceJson(buildMarketPath());
+        const rows = await fetchJson(buildMarketUrl());
         const bySymbol = new Map(rows.map((row) => [row.symbol, row]));
         state.marketData = COINS.map((coin) => {
             const row = bySymbol.get(coin.pair);
@@ -208,7 +105,6 @@ async function loadMarketData({ quiet = false } = {}) {
         state.isRefreshing = false;
         elements.refreshButton.disabled = false;
         elements.refreshButton.classList.remove("is-loading");
-        elements.refreshLabel.textContent = "Refresh";
         elements.refreshButton.removeAttribute("aria-busy");
     }
 }
@@ -243,10 +139,10 @@ function updateSelectedCoinSummary() {
     }
 }
 
-function buildChartPath(coin, period) {
+function buildChartUrl(coin, period) {
     const options = PERIODS[period];
     const params = new URLSearchParams({ symbol: coin.pair, interval: options.interval, limit: String(options.limit) });
-    return `/klines?${params.toString()}`;
+    return `${API_BASE}/klines?${params.toString()}`;
 }
 
 async function loadChart() {
@@ -254,12 +150,10 @@ async function loadChart() {
     elements.chartLoading.textContent = "Loading price history…";
     elements.chartLoading.classList.remove("hidden");
     try {
-        const candles = await fetchBinanceJson(buildChartPath(state.selected, state.period));
+        const candles = await fetchJson(buildChartUrl(state.selected, state.period));
         if (requestId !== state.chartRequestId) return;
         const points = candles.map((candle) => ({ time: Number(candle[0]), price: Number(candle[4]) })).filter((point) => Number.isFinite(point.price));
         if (points.length < 2) throw new Error("Not enough price history is available yet.");
-        state.chartPoints = points;
-        state.chartCandles = candles;
         renderChart(points, candles);
         elements.chartLoading.classList.add("hidden");
     } catch (error) {
@@ -315,21 +209,6 @@ function initializeCoinPicker() {
     });
 }
 
-function initializeCurrencyPicker() {
-    elements.currencySelect.disabled = true;
-    elements.currencySelect.value = "USD";
-    elements.currencySelect.addEventListener("change", () => {
-        if (!Number.isFinite(state.currencyRates[elements.currencySelect.value])) return;
-        state.currency = elements.currencySelect.value;
-        try {
-            localStorage.setItem("bluechip.display-currency", state.currency);
-        } catch {
-            // The selection still applies for the current session.
-        }
-        updateCurrencyDisplay();
-    });
-}
-
 function initializePeriodButtons() {
     document.querySelectorAll(".period-button").forEach((button) => {
         button.addEventListener("click", () => {
@@ -343,13 +222,11 @@ function initializePeriodButtons() {
 
 function initialize() {
     initializeCoinPicker();
-    initializeCurrencyPicker();
     initializePeriodButtons();
     elements.refreshButton.addEventListener("click", async () => {
         const updated = await loadMarketData();
         if (updated) await loadChart();
     });
-    loadCurrencyRates();
     loadMarketData({ quiet: true }).then(loadChart);
 }
 
