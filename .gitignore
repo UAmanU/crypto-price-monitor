@@ -1,0 +1,9 @@
+build/
+.vscode/
+*.exe
+.env
+.env.*
+!.env.example
+node_modules/
+coverage/
+*.log
