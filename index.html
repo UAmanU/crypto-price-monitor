@@ -19,11 +19,17 @@
                 <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
                 <span>bluechip<span class="brand-period">.</span></span>
             </a>
-            <div class="market-status"><span class="status-dot"></span><span>MARKET OPEN</span><span class="status-divider">/</span><span class="status-caption">SPOT MARKET</span></div>
-            <button class="refresh-button" id="refresh-button" type="button">
-                <svg class="refresh-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 8a6.7 6.7 0 0 0-11.9-2L3 7.5M3 7.5V3.8m0 3.7h3.7M3.5 12a6.7 6.7 0 0 0 11.9 2l1.6-1.5m0 0v3.7m0-3.7h-3.7"/></svg>
-                <span>Refresh</span>
-            </button>
+            <a class="top-nav-link" href="#top" aria-label="Go to the top of the page">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3m0 0L4 7m4-4 4 4"/></svg>
+                <span>BACK TO TOP</span>
+            </a>
+            <div class="topbar-actions">
+                <div class="market-status" title="Cryptocurrency spot markets trade around the clock."><span class="status-dot"></span><span>MARKET OPEN</span><span class="status-divider">/</span><span class="status-caption">BINANCE SPOT · 24/7</span></div>
+                <button class="refresh-button" id="refresh-button" type="button">
+                    <svg class="refresh-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 8a6.7 6.7 0 0 0-11.9-2L3 7.5M3 7.5V3.8m0 3.7h3.7M3.5 12a6.7 6.7 0 0 0 11.9 2l1.6-1.5m0 0v3.7m0-3.7h-3.7"/></svg>
+                    <span id="refresh-label">Refresh</span>
+                </button>
+            </div>
         </header>
 
         <main id="top">
@@ -33,7 +39,18 @@
                     <h1 id="page-title">The market,<br><span>at a glance.</span></h1>
                     <p class="intro-copy">A clear view of the coins moving the market.<br>Live prices, no noise.</p>
                 </div>
-                <div class="intro-meta"><span class="meta-label">PRICES IN</span><span class="currency-chip">USD <span>⌄</span></span></div>
+                <form class="intro-meta currency-picker" id="currency-picker">
+                    <label class="meta-label" for="currency-select">DISPLAY CURRENCY</label>
+                    <span class="currency-control">
+                        <select class="currency-chip" id="currency-select" name="currency" aria-label="Display currency">
+                            <option value="USD">USD · US Dollar</option>
+                            <option value="EUR">EUR · Euro</option>
+                            <option value="GBP">GBP · British Pound</option>
+                            <option value="KZT">KZT · Kazakhstani Tenge</option>
+                        </select>
+                        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+                    </span>
+                </form>
             </section>
 
             <section class="market-layout" aria-label="Cryptocurrency market">
@@ -75,12 +92,12 @@
                         <div class="chart-loading" id="chart-loading">Loading price history…</div>
                     </div>
                     <div class="chart-axis"><span id="axis-start">—</span><span id="axis-middle">—</span><span id="axis-end">NOW</span></div>
-                    <div class="chart-footer"><span><span class="legend-dot"></span> PRICE (USD)</span><span id="chart-high-low">HIGH — &nbsp; LOW —</span></div>
+                    <div class="chart-footer"><span><span class="legend-dot"></span> <span id="chart-footer-label">PRICE (USD)</span></span><span id="chart-high-low">HIGH — &nbsp; LOW —</span></div>
                 </aside>
             </section>
         </main>
 
-        <footer class="footer"><span>BLUECHIP <span class="footer-separator">/</span> MARKET WATCH</span><span>Market data is for informational purposes only.</span></footer>
+        <footer class="footer"><span>BLUECHIP <span class="footer-separator">/</span> MARKET WATCH</span><span>FX rates update daily · <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">Rates By Exchange Rate API</a></span></footer>
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </div>
 </body>
