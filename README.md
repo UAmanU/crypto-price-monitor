@@ -1,40 +1,50 @@
-# Bluechip — Crypto Market Watch
+# Bluechip — Cryptocurrency Tools
 
 **Creator:** AmanU
 **Created:** November 10, 2026
-**Project:** Bluechip — Crypto Market Watch
+**Project:** Bluechip — Cryptocurrency Tools
 
-Bluechip is a small, responsive cryptocurrency price dashboard. It shows live USD prices and 24-hour changes for five major assets, plus a selectable price chart.
+Bluechip is a small, responsive website with three crypto tools: a live price tracker, a money-to-crypto converter, and a crypto-to-money converter.
 
 ## How it works
 
-The site is a static HTML, CSS, and JavaScript application. It requests public spot-market data from Binance's market-data-only REST API. No account, API key, server, or build step is required.
+The site is a static HTML, CSS, and JavaScript application. It requests public spot-market data from Binance and reference exchange rates from ExchangeRate-API. No account, API key, server, or build step is required.
 
-- The market list uses the 24-hour ticker endpoint for BTC, ETH, BNB, SOL, and XRP trading pairs against USDT.
-- The chart uses Binance candlestick data for the selected asset. The 1H, 24H, and 7D controls change the candle interval and number of points.
-- Refresh requests are single-flight and have a five-second cooldown. Rapid repeated clicks cannot start overlapping market requests.
-- API and network failures are shown in the interface; existing prices stay visible if a later refresh fails.
+- The home page links to each tool.
+- The price tracker lists BTC, ETH, BNB, SOL, and XRP against USDT and includes a selectable Binance candle chart.
+- The two converters use the same five crypto assets and USD, EUR, GBP, or KZT. Entering an amount updates the estimate using the latest loaded crypto price and cached fiat reference rate.
+- Currency reference rates are cached in local browser storage for 24 hours. Crypto spot prices are refreshed from Binance when a converter opens or its refresh button is pressed.
+- Navigation buttons stay fixed at the top left: all pages have a page-top link, and tool pages also link home.
+- API and network failures are shown in the interface. Refresh controls prevent overlapping requests.
 
 ## File structure
 
 ```text
 crypto-price-monitor/
-├── index.html       # Page structure and accessible controls
+├── index.html           # Home page with links to all tools
+├── prices.html          # Crypto prices and selected-coin chart
+├── fiat-to-crypto.html  # Money-to-crypto converter
+├── crypto-to-fiat.html  # Crypto-to-money converter
 ├── css/
-│   └── styles.css   # Dark theme, layout, and responsive rules
+│   └── styles.css       # Shared dark theme, navigation, and responsive layouts
 ├── script/
-│   └── app.js       # API requests, refresh guard, and chart rendering
+│   ├── app.js           # Price tracker and chart behavior
+│   └── converter.js     # Shared conversion logic for both directions
+├── test/
+│   └── smoke_test.js    # Navigation and converter smoke tests
 ├── .gitignore
 └── README.md
 ```
 
 ## Ownership and architecture
 
-The project is owned by AmanU. `index.html` contains the page and semantic controls, `css/styles.css` owns presentation, and `script/app.js` owns market state, API access, formatting, and SVG chart rendering. It is deliberately dependency-free and has no backend, so it does not store personal data or API credentials.
+The project is owned by AmanU. Each page has its own HTML file. `css/styles.css` provides shared visual styles, `script/app.js` powers the price tracker, and `script/converter.js` serves both converter directions based on each page's `data-direction`. The project has no backend and does not store personal data or API credentials. Browser storage is used only to cache reference rates.
 
 ## Data source
 
-Binance public Spot market data: [REST API documentation](https://developers.binance.com/en/docs/products/spot/rest-api). The app uses `https://data-api.binance.vision`, Binance's market-data-only endpoint. Prices represent Binance USDT spot pairs converted to an approximate USD display; USDT is designed to track the US dollar, but can differ slightly.
+Binance public Spot market data: [REST API documentation](https://developers.binance.com/en/docs/products/spot/rest-api). The app uses public ticker and candle endpoints. Crypto-to-fiat estimates treat USDT as an approximate USD value.
+
+Currency conversion uses [ExchangeRate-API's open endpoint](https://www.exchangerate-api.com/docs/free). Its public reference rates update daily; crypto prices update from Binance Spot.
 
 ## Run locally
 
@@ -45,6 +55,12 @@ python -m http.server 8000
 ```
 
 Then visit `http://localhost:8000`. No dependencies or build command are required.
+
+Run the smoke tests with Node.js:
+
+```bash
+node --test test/smoke_test.js
+```
 
 ## Limitations
 

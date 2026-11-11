@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#070a12">
+    <meta name="description" content="Track prices and chart history for five leading cryptocurrencies.">
+    <title>Crypto Prices — Bluechip</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="script/app.js" defer></script>
+</head>
+<body class="sub-page">
+    <div class="page-shell">
+        <header class="topbar" id="page-start">
+            <nav class="page-nav" aria-label="Page navigation">
+                <a class="page-nav-button" href="#page-start" aria-label="Return to the beginning of this page"><span aria-hidden="true">↑</span><span>Top</span></a>
+                <a class="page-nav-button home-link" href="index.html" aria-label="Return to the home page"><span aria-hidden="true">⌂</span><span>Home</span></a>
+            </nav>
+            <a class="brand" href="index.html" aria-label="Bluechip home">
+                <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span>bluechip<span class="brand-period">.</span></span>
+            </a>
+            <div class="market-status"><span class="status-dot"></span><span>MARKET OPEN</span><span class="status-divider">/</span><span class="status-caption">BINANCE SPOT · 24/7</span></div>
+            <button class="refresh-button" id="refresh-button" type="button">
+                <svg class="refresh-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 8a6.7 6.7 0 0 0-11.9-2L3 7.5M3 7.5V3.8m0 3.7h3.7M3.5 12a6.7 6.7 0 0 0 11.9 2l1.6-1.5m0 0v3.7m0-3.7h-3.7"/></svg>
+                <span id="refresh-label">Refresh</span>
+            </button>
+        </header>
+
+        <main id="top">
+            <section class="intro" aria-labelledby="page-title">
+                <div>
+                    <p class="eyebrow"><span class="eyebrow-line"></span> YOUR DAILY MARKET BRIEF</p>
+                    <h1 id="page-title">The market,<br><span>at a glance.</span></h1>
+                    <p class="intro-copy">A clear view of the coins moving the market.<br>Live prices, no noise.</p>
+                </div>
+                <div class="intro-meta"><span class="meta-label">PRICES IN</span><span class="currency-chip">USD</span></div>
+            </section>
+
+            <section class="market-layout" aria-label="Cryptocurrency market">
+                <div class="coin-column">
+                    <div class="section-heading">
+                        <div><p class="eyebrow">THE BIG FIVE</p><h2>Top assets</h2></div>
+                        <span class="updated-label" id="updated-label">Waiting for data</span>
+                    </div>
+                    <div class="coin-list" id="coin-list" aria-live="polite">
+                        <div class="loading-row"><span class="loading-pulse"></span>Connecting to market data…</div>
+                    </div>
+                    <p class="data-note">Prices are provided by Binance Spot and may be delayed.</p>
+                </div>
+
+                <aside class="chart-panel" aria-labelledby="chart-title">
+                    <div class="chart-panel-top">
+                        <div>
+                            <p class="eyebrow">PRICE HISTORY</p>
+                            <h2 id="chart-title">Bitcoin <span class="chart-symbol">BTC</span></h2>
+                        </div>
+                        <form class="coin-picker" id="coin-picker">
+                            <label class="visually-hidden" for="coin-select">Choose a cryptocurrency</label>
+                            <select id="coin-select" name="coin"></select>
+                            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+                        </form>
+                    </div>
+                    <div class="chart-price-block">
+                        <strong id="chart-price">—</strong>
+                        <span class="chart-change neutral" id="chart-change">Loading</span>
+                    </div>
+                    <div class="chart-controls" role="group" aria-label="Chart period">
+                        <button type="button" class="period-button active" data-period="1h">1H</button>
+                        <button type="button" class="period-button" data-period="24h">24H</button>
+                        <button type="button" class="period-button" data-period="7d">7D</button>
+                    </div>
+                    <div class="chart-wrap" id="chart-wrap">
+                        <div class="chart-grid" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+                        <svg class="price-chart" id="price-chart" viewBox="0 0 640 250" preserveAspectRatio="none" role="img" aria-label="Bitcoin price chart"></svg>
+                        <div class="chart-loading" id="chart-loading">Loading price history…</div>
+                    </div>
+                    <div class="chart-axis"><span id="axis-start">—</span><span id="axis-middle">—</span><span id="axis-end">NOW</span></div>
+                    <div class="chart-footer"><span><span class="legend-dot"></span> PRICE (USD)</span><span id="chart-high-low">HIGH — &nbsp; LOW —</span></div>
+                </aside>
+            </section>
+        </main>
+
+        <footer class="footer"><span>BLUECHIP <span class="footer-separator">/</span> PRICE TRACKER</span><span>Market data is for informational purposes only.</span></footer>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+</body>
+</html>

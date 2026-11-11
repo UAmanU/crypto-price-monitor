@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#070a12">
+    <meta name="description" content="Convert an amount of money into a cryptocurrency using current market prices.">
+    <title>Money to Crypto — Bluechip</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="script/converter.js" defer></script>
+</head>
+<body class="sub-page converter-page" data-direction="fiat-to-crypto">
+    <div class="page-shell">
+        <header class="topbar" id="page-start">
+            <nav class="page-nav" aria-label="Page navigation">
+                <a class="page-nav-button" href="#page-start" aria-label="Return to the beginning of this page"><span aria-hidden="true">↑</span><span>Top</span></a>
+                <a class="page-nav-button home-link" href="index.html" aria-label="Return to the home page"><span aria-hidden="true">⌂</span><span>Home</span></a>
+            </nav>
+            <a class="brand" href="index.html" aria-label="Bluechip home">
+                <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span>bluechip<span class="brand-period">.</span></span>
+            </a>
+            <span class="page-kind">CONVERTER 01</span>
+        </header>
+        <main class="converter-main" id="top">
+            <section class="converter-intro">
+                <p class="eyebrow"><span class="eyebrow-line"></span> FIAT → CRYPTO</p>
+                <h1>Money into<br><span>crypto.</span></h1>
+                <p class="intro-copy">Enter an amount to estimate how much cryptocurrency it could buy.</p>
+            </section>
+            <section class="converter-card" aria-labelledby="converter-heading">
+                <div class="converter-card-heading"><div><p class="eyebrow">CONVERSION CALCULATOR</p><h2 id="converter-heading">Choose currencies</h2></div><span class="live-badge"><span class="status-dot"></span> LIVE PRICE</span></div>
+                <form class="converter-form" id="converter-form" novalidate>
+                    <div class="converter-fields">
+                        <label class="field-group" for="fiat-currency"><span class="field-label">YOUR MONEY</span><span class="field-control"><select id="fiat-currency" name="fiat-currency"></select></span></label>
+                        <span class="direction-mark" aria-hidden="true">→</span>
+                        <label class="field-group" for="crypto-currency"><span class="field-label">CRYPTOCURRENCY</span><span class="field-control"><select id="crypto-currency" name="crypto-currency"></select></span></label>
+                    </div>
+                    <label class="field-group amount-group" for="amount"><span class="field-label">AMOUNT TO CONVERT</span><input id="amount" name="amount" type="number" inputmode="decimal" min="0" step="any" value="100" placeholder="Enter amount"></label>
+                    <div class="conversion-result" aria-live="polite"><span class="result-label">YOU COULD RECEIVE</span><output class="result-value" id="conversion-result">—</output><span class="result-note" id="result-note">Loading current market rate…</span></div>
+                    <button class="refresh-button quote-button" id="refresh-quote" type="button"><svg class="refresh-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 8a6.7 6.7 0 0 0-11.9-2L3 7.5M3 7.5V3.8m0 3.7h3.7M3.5 12a6.7 6.7 0 0 0 11.9 2l1.6-1.5m0 0v3.7m0-3.7h-3.7"/></svg><span id="refresh-label">Refresh rate</span></button>
+                </form>
+            </section>
+            <p class="converter-disclaimer">Estimate only. Crypto market prices change continuously; currency reference rates update daily.</p>
+        </main>
+        <footer class="footer"><span>BLUECHIP <span class="footer-separator">/</span> MONEY TO CRYPTO</span><span>Rates by <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">ExchangeRate-API</a> · Market data is informational.</span></footer>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+</body>
+</html>
